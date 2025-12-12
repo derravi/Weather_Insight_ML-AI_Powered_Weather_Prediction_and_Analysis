@@ -9,24 +9,33 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error,mean_squared_error,r2_score
 from sklearn.linear_model import LinearRegression
+import pickle
 
 print("Lets Import the Datasets.......\n")
 
-df = pd.read_csv("weatherHistory.csv")
-df.head()
+try:
+    df = pd.read_csv("Data Sheet/weatherHistory.csv")
+    df.head()
+except Exception as e:
+    print(f"error {e}")
 
 print("Convert the Columns of the Date into the multiple columns........")
+try:
+    df["Formatted Date"] = pd.to_datetime(df['Formatted Date'], utc=True)
 
-df["Formatted Date"] = pd.to_datetime(df['Formatted Date'], utc=True)
-
-df['year'] = df['Formatted Date'].dt.year
-df['month'] = df['Formatted Date'].dt.month
-df['day'] = df['Formatted Date'].dt.day
-df['hour'] = df['Formatted Date'].dt.hour
-df['minute'] = df['Formatted Date'].dt.minute
-df['second'] = df['Formatted Date'].dt.seconddf.drop(columns='Formatted Date',axis=1,inplace=True)
-
-df.head(3)
+    df['year'] = df['Formatted Date'].dt.year
+    df['month'] = df['Formatted Date'].dt.month
+    df['day'] = df['Formatted Date'].dt.day
+    df['hour'] = df['Formatted Date'].dt.hour
+    df['minute'] = df['Formatted Date'].dt.minute
+    df['second'] = df['Formatted Date'].dt.second
+except Exception as e:
+    print(f"error {e}")
+try:
+    df.drop(columns='Formatted Date',axis=1,inplace=True)
+    df.head(3)
+except Exception as e:
+    print(f"error {e}")
 
 new_index = [
     "year",
@@ -47,7 +56,12 @@ new_index = [
     "Daily Summary",
     "Temperature (C)"
 ]
-df = df.reindex(columns=new_index)
+
+try:
+    df = df.reindex(columns=new_index)
+except Exception as e:
+    print(f"error {e}")
+
 print(f"The total number of Rows is {df.shape[0]} and the Total Column is {df.shape[1]}")
 
 df.head(3)
@@ -57,188 +71,236 @@ print("Let See there is any null value is present or not........")
 df.isnull().sum()
 
 print("Lets Fillup the Null value of the Requered Columns........\n")
-
-df['Precip Type'] = df['Precip Type'].fillna(df['Precip Type'].mode()[0])
+try:
+    df['Precip Type'] = df['Precip Type'].fillna(df['Precip Type'].mode()[0])
+except Exception as e:
+    print(f"error {e}")
 
 print("Lets ReCheck the null value is present or not........")
 df.isnull().sum()
 
-temp1 = []
-temp2 = []
+try:
 
-for i in df.columns:
-    if df[i].dtype == 'object':
-        #Store Object type of the Columns
-        temp1.append(i)
-    else:
-        #Store Numaric Columns
-        temp2.append(i)
-        
+    temp1 = []
+    temp2 = []
+
+    for i in df.columns:
+        if df[i].dtype == 'object':
+            #Store Object type of the Columns
+            temp1.append(i)
+        else:
+            #Store Numaric Columns
+            temp2.append(i)
+except Exception as e:
+    print(f"error {e}")
+            
 print("Lets Check the Outliers of the All Columns........\n")
 
-plt.figure(figsize=(15,3*len(temp2)))
-for i in range(1,len(temp2)+1):
-    plt.subplot(len(temp2),1,i)
-    sns.boxplot(x = temp2[i-1],data=df)
-    plt.title(f"{i}")
-plt.tight_layout()
-plt.show()
+try:
+    plt.figure(figsize=(15,3*len(temp2)))
+    for i in range(1,len(temp2)+1):
+        plt.subplot(len(temp2),1,i)
+        sns.boxplot(x = temp2[i-1],data=df)
+        plt.title(f"{i}")
+    plt.tight_layout()
+    plt.show()
+except Exception as e:
+    print(f"error {e}")
+
 #Lets Remove the Outliers of the Some Columns That have a very high Outliers.
-temp_list = ['Wind Speed (km/h)','Pressure (millibars)','Apparent Temperature (C)']
+print("Lets remove the outliers...............")
+try:
+    temp_list = ['Wind Speed (km/h)','Pressure (millibars)','Apparent Temperature (C)']
 
-for i in temp_list:
-    q1 = df[i].quantile(0.25)
-    q3 = df[i].quantile(0.75)
-    iqr = q3 - q1
+    for i in temp_list:
+        q1 = df[i].quantile(0.25)
+        q3 = df[i].quantile(0.75)
+        iqr = q3 - q1
 
-    min_range = q1 - (1.5 * iqr)
-    max_range = q3 + (1.5 * iqr)
+        min_range = q1 - (1.5 * iqr)
+        max_range = q3 + (1.5 * iqr)
 
-    df = df[(df[i] >= min_range) & (df[i] <= max_range)]
-    
+        df = df[(df[i] >= min_range) & (df[i] <= max_range)]
+except Exception as e:
+    print(f"error {e}")
+
 df.head(3)
 
 print("Lets Check the Data Types of the all columns........")
 df.dtypes
 
-print("Lets Encode all the Objects type of the Columns........")
 
-# Create a dictionary to store label encoders for each categorical column
-label_encoders = {}
 
-for i in temp1:
-    lb = LabelEncoder()
-    df[i] = lb.fit_transform(df[i])
-    label_encoders[i] = lb  # Store the fitted encoder for each column
+try:
+    print("Lets Encode all the Objects type of the Columns........")
+
+    # Create a dictionary to store label encoders for each categorical column
+    label_encoders = {}
+    for i in temp1:
+        lb = LabelEncoder()
+        df[i] = lb.fit_transform(df[i])
+        label_encoders[i] = lb  # Store the fitted encoder for each column
+except Exception as e:
+    print(f"error {e}")
+
 print("Lets Check the All the Columns after the using Labelencoder........")
-df.head()#Feture Selectino
-print("Lets Select the Feture for the training data........")
-x = df.iloc[:,:-2]
-y = df[['Temperature (C)','Daily Summary']]#Train and Test the Model 
+df.head()
 
-x_train,x_test,y_train,y_test = train_test_split(x,y,test_size=0.2,random_state=42)
+#Feture Selectino
+try:
+    print("Lets Select the Feture for the training data........")
+    x = df.iloc[:,:-2]
+    y = df[['Temperature (C)','Daily Summary']]
+except Exception as e:
+    print(f"error {e}")
+
+#Train and Test the Model 
+print("Lets use the train_test_split.......................")
+try:
+    x_train,x_test,y_train,y_test = train_test_split(x,y,test_size=0.2,random_state=42)
+except Exception as e:
+    print(f"error {e}")
 
 print("Feture Scaling for all the Data........")
+try:
+    std = StandardScaler()
 
-std = StandardScaler()
+    x_train_scaled = std.fit_transform(x_train)
+    x_test_scaled = std.transform(x_test)
+except Exception as e:
+    print(f"error {e}")
 
-x_train_scaled = std.fit_transform(x_train)
-x_test_scaled = std.transform(x_test)#Using the RandomForestRegressor
+#Using the RandomForestRegressor
 print("Training Random Forest Regressor Model..........")
+try:
+    lfr = RandomForestRegressor(n_estimators=200,random_state=42,n_jobs=-1)
+    lfr.fit(x_train_scaled,y_train)
 
-lfr = RandomForestRegressor(n_estimators=200,random_state=42,n_jobs=-1)
-lfr.fit(x_train_scaled,y_train)
+    y_predicted = lfr.predict(x_test_scaled)
+except Exception as e:
+    print(f"error {e}")
 
-y_predicted = lfr.predict(x_test_scaled)
 y_temp_predict = y_predicted[:,0]
 y_sumury_predict = y_predicted[:,1]
+try:
 
-print("Lets See the Different Different Parameters of the model........\n")
+    print("Lets See the Different Different Parameters of the model........\n")
 
-print("Mean Absolute Error (MAE): ", round(mean_absolute_error(y_test.iloc[:,0], y_temp_predict),2))
-print("Mean Squared Error (MSE): ", round(mean_squared_error(y_test.iloc[:,0], y_temp_predict),2))
-print("Root Mean Squared Error (RMSE): ", round(np.sqrt(mean_squared_error(y_test.iloc[:,0], y_temp_predict)),2))
-print("R² Score: ",round(r2_score(y_test.iloc[:,0], y_temp_predict),2))
+    print("Mean Absolute Error (MAE): ", round(mean_absolute_error(y_test.iloc[:,0], y_temp_predict),2))
+    print("Mean Squared Error (MSE): ", round(mean_squared_error(y_test.iloc[:,0], y_temp_predict),2))
+    print("Root Mean Squared Error (RMSE): ", round(np.sqrt(mean_squared_error(y_test.iloc[:,0], y_temp_predict)),2))
+    print("R² Score: ",round(r2_score(y_test.iloc[:,0], y_temp_predict),2))
+except Exception as e:
+    print(f"error {e}.")
+
 #Using the Linear Regression Model
 
 print("Training Linear Regression Model..........")
+try:
+    lr = LinearRegression()
 
-lr = LinearRegression()
+    lr.fit(x_train_scaled,y_train)
+    y_linear_predicted = lr.predict(x_test_scaled)
+except Exception as e:
+    print(f"error {e}")
 
-lr.fit(x_train_scaled,y_train)
-y_linear_predicted = lr.predict(x_test_scaled)
-y_temp_linear_predict = y_linear_predicted[:,0]
-y_summury_linear_predict = y_linear_predicted[:,1]
+try:
 
-print("Mean Absolute Error (MAE) : ",round(mean_absolute_error(y_test.iloc[:,0],y_temp_linear_predict),2))
-print("Mean Squared Error (MSE) : ",round(mean_squared_error(y_test.iloc[:,0],y_temp_linear_predict),2))
-print("Root Mean Square Error (RMSE) : ",round(np.sqrt(mean_squared_error(y_test.iloc[:,0],y_temp_linear_predict)),2))
-print("R² Score : ",round(r2_score(y_test.iloc[:,0],y_temp_linear_predict),2))
+    y_temp_linear_predict = y_linear_predicted[:,0]
+    y_summury_linear_predict = y_linear_predicted[:,1]
+
+    print("Mean Absolute Error (MAE) : ",round(mean_absolute_error(y_test.iloc[:,0],y_temp_linear_predict),2))
+    print("Mean Squared Error (MSE) : ",round(mean_squared_error(y_test.iloc[:,0],y_temp_linear_predict),2))
+    print("Root Mean Square Error (RMSE) : ",round(np.sqrt(mean_squared_error(y_test.iloc[:,0],y_temp_linear_predict)),2))
+    print("R² Score : ",round(r2_score(y_test.iloc[:,0],y_temp_linear_predict),2))
+except Exception as e:
+    print(f"error {e}.")
 
 print("======================= User Input Temperature Prediction =======================")
 
 #Define One FUnction for the User Input.
 def UserInput():
+    try:
+        #Int User Data
+        year = int(input("Enter Year: "))
+        month = int(input("Enter Month (e.g., 5, 12, 9): "))
+        day = int(input("Enter Day (e.g., 12, 25): "))
+        hour = int(input("Enter Hour: "))
+        minute = int(input("Enter Minute: "))
+        second = int(input("Enter Second: "))
 
-    #Int User Data
-    year = int(input("Enter Year: "))
-    month = int(input("Enter Month (e.g., 5, 12, 9): "))
-    day = int(input("Enter Day (e.g., 12, 25): "))
-    hour = int(input("Enter Hour: "))
-    minute = int(input("Enter Minute: "))
-    second = int(input("Enter Second: "))
+        #Object Types of User data
+        Summary = input("Enter Summary (eg.Partly Cloudy,Mostly Cloudy,Overcast,Foggy): ")
+        Precip_Type = input("Enter Precip Type (eg.rain,snow): ")       
 
-    #Object Types of User data
-    Summary = input("Enter Summary (eg.Partly Cloudy,Mostly Cloudy,Overcast,Foggy): ")
-    Precip_Type = input("Enter Precip Type (eg.rain,snow): ")       
-
-    #Float User Data
-    Humidity = float(input("Enter Humidity: "))         
-    Wind_Speed = float(input("Enter Wind Speed (km/h): "))    
-    Wind_Bearing = float(input("Enter Wind Bearing (degrees): "))  
-    Visibility = float(input("Enter Visibility (km): "))         
-    Cloud_Cover = float(input("Enter Cloud Cover: "))          
-    Pressure = float(input("Enter Pressure (millibars): "))      
-    Apparent_Temperature = float(input("Enter Apparent Temperature (C): "))
+        #Float User Data
+        Humidity = float(input("Enter Humidity: "))         
+        Wind_Speed = float(input("Enter Wind Speed (km/h): "))    
+        Wind_Bearing = float(input("Enter Wind Bearing (degrees): "))  
+        Visibility = float(input("Enter Visibility (km): "))         
+        Cloud_Cover = float(input("Enter Cloud Cover: "))          
+        Pressure = float(input("Enter Pressure (millibars): "))      
+        Apparent_Temperature = float(input("Enter Apparent Temperature (C): "))
+        
+        data = {
+            'year': year,
+            'month': month,
+            'day': day,
+            'hour': hour,
+            'minute': minute,
+            'second': second,
+            'Summary': Summary,
+            'Precip Type': Precip_Type,                 
+            'Humidity': Humidity,
+            'Wind Speed (km/h)': Wind_Speed,
+            'Wind Bearing (degrees)': Wind_Bearing,
+            'Visibility (km)': Visibility,
+            'Loud Cover': Cloud_Cover,                   
+            'Pressure (millibars)': Pressure,
+            'Apparent Temperature (C)': Apparent_Temperature,
+        }
     
-    data = {
-        'year': year,
-        'month': month,
-        'day': day,
-        'hour': hour,
-        'minute': minute,
-        'second': second,
-        'Summary': Summary,
-        'Precip Type': Precip_Type,
-        'Humidity': Humidity,
-        'Wind Speed (km/h)': Wind_Speed,
-        'Wind Bearing (degrees)': Wind_Bearing,
-        'Visibility (km)': Visibility,
-        'Loud Cover': Cloud_Cover,                   
-        'Pressure (millibars)': Pressure,
-        'Apparent Temperature (C)': Apparent_Temperature,
-    }
-   
-    #Make the data frame of this user details. 
-    input_data = pd.DataFrame([data])
+        #Make the data frame of this user details. 
+        input_data = pd.DataFrame([data])
 
-    #Encode the Categorical Columns using the stored Label Encoders
-    categorical_columns = ['Summary', 'Precip Type'] 
-    for i in categorical_columns:
-        if i in input_data.columns and i in label_encoders:
-            input_data[i] = label_encoders[i].transform(input_data[i])
+        #Encode the Categorical Columns using the stored Label Encoders
+        categorical_columns = ['Summary', 'Precip Type'] 
+        for i in categorical_columns:
+            if i in input_data.columns and i in label_encoders:
+                input_data[i] = label_encoders[i].transform(input_data[i])
 
-    # Ensure the input data has the same columns as the training data
-    input_data = input_data[std.feature_names_in_]
-    
-    #Rescal the User Input
-    scaled_input = std.transform(input_data)
+        # Ensure the input data has the same columns as the training data
+        input_data = input_data[std.feature_names_in_]
+        
+        #Rescal the User Input
+        scaled_input = std.transform(input_data)
 
-    #Lets Do the Prediction using the Both the Models.
+        #Lets Do the Prediction using the Both the Models.
 
-    predict_random_forest = lfr.predict(scaled_input)[0]
-    predict_linear_regression = lr.predict(scaled_input)[0]
+        predict_random_forest = lfr.predict(scaled_input)[0]
+        predict_linear_regression = lr.predict(scaled_input)[0]
 
-    # Reverse transform the Daily Summary predictions
-    random_forest_reverse_prediction = label_encoders['Daily Summary'].inverse_transform([int(predict_random_forest[1])])[0]
-    Linear_regression_reverse_prediction = label_encoders['Daily Summary'].inverse_transform([int(predict_linear_regression[1])])[0]
+        # Reverse transform the Daily Summary predictions
+        random_forest_reverse_prediction = label_encoders['Daily Summary'].inverse_transform([int(predict_random_forest[1])])[0]
+        Linear_regression_reverse_prediction = label_encoders['Daily Summary'].inverse_transform([int(predict_linear_regression[1])])[0]
 
-    print("\n" + "="*70)
-    print("WEATHER PREDICTION RESULT".center(70))
-    print("="*70)
+        print("\n" + "="*70)
+        print("🌦️  WEATHER PREDICTION RESULT".center(70))
+        print("="*70)
 
-    print("\n[ Random Forest Model ]")
-    print(f" → Predicted Temperature : {predict_random_forest[0]:.2f} °C")
-    print(f" → Predicted Summary     : {random_forest_reverse_prediction}")
+        print("\n[ Random Forest Model ]")
+        print(f" → Predicted Temperature : {predict_random_forest[0]:.2f} °C")
+        print(f" → Predicted Summary     : {random_forest_reverse_prediction}")
 
-    print("\n[ Linear Regression Model ]")
-    print(f" → Predicted Temperature : {predict_linear_regression[0]:.2f} °C")
-    print(f" → Predicted Summary     : {Linear_regression_reverse_prediction}")
+        print("\n[ Linear Regression Model ]")
+        print(f" → Predicted Temperature : {predict_linear_regression[0]:.2f} °C")
+        print(f" → Predicted Summary     : {Linear_regression_reverse_prediction}")
 
-    print("\n" + "="*70)
-    print("Prediction Completed Successfully!".center(70))
-    print("="*70)
-
+        print("\n" + "="*70)
+        print("✅ Prediction Completed Successfully!".center(70))
+        print("="*70)
+    except Exception as e:
+        print(f"error {e}")
 
 
 UserInput()
@@ -253,7 +315,7 @@ plt.ylabel("Apparent Temperature (°C)")
 plt.grid(True,alpha=0.3,color='skyblue')
 plt.legend(loc='upper left')
 plt.tight_layout()
-plt.savefig("Temperature_vs_Appearent_Temperature_°C.png",dpi=400,bbox_inches='tight')
+plt.savefig("Figures/Temperature_vs_Appearent_Temperature_°C.png",dpi=400,bbox_inches='tight')
 plt.show()
 
 #Distribution of Humidity
@@ -264,7 +326,7 @@ plt.title("Distribution of Humidity")
 plt.xlabel('Humidity')
 plt.ylabel('Frequency')
 plt.grid(True,color='silver')
-plt.savefig("Distribution_of_Humidity.png",dpi=400,bbox_inches='tight')
+plt.savefig("Figures/Distribution_of_Humidity.png",dpi=400,bbox_inches='tight')
 plt.tight_layout()
 plt.show()
 
@@ -276,7 +338,7 @@ plt.title("Temperature vs Humidity")
 plt.xlabel('Humidity')
 plt.ylabel('Temperature (°C)')
 plt.grid(True,color='silver')
-plt.savefig("Temperature_vs_Humidity.png",dpi=400,bbox_inches='tight')
+plt.savefig("Figures/Temperature_vs_Humidity.png",dpi=400,bbox_inches='tight')
 plt.tight_layout()
 plt.show()
 
@@ -287,7 +349,16 @@ plt.colorbar()
 plt.xticks(range(len(corr)), corr.columns, rotation=90)
 plt.yticks(range(len(corr)), corr.columns)
 plt.title("Correlation Matrix", fontsize=16)
-plt.savefig("Correlation_Matrix.png",dpi=400,bbox_inches='tight')
+plt.savefig("Figures/Correlation_Matrix.png",dpi=400,bbox_inches='tight')
 plt.tight_layout()
 plt.show()
 
+plt.figure(figsize=(10,6))
+sns.regplot(data=df, x='Humidity', y='Temperature (C)', scatter_kws={'alpha':0.5}, line_kws={'color':'red'})
+plt.title("💧 Temperature vs Humidity", fontsize=16)
+plt.xlabel("Humidity", fontsize=12)
+plt.ylabel("Temperature (°C)", fontsize=12)
+plt.grid(True)
+plt.legend(loc='upper right')
+plt.savefig("Figures/Temperature_vs_Humidity.png",dpi=300,bbox_inches='tight')
+plt.show()
